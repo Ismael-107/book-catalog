@@ -3,6 +3,7 @@ package com.example.catalog.web;
 import com.example.catalog.dto.BookRequestDTO;
 import com.example.catalog.dto.BookResponseDTO;
 import com.example.catalog.service.BookService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,7 +31,7 @@ public class BookController {
     }
 
     @PostMapping
-    public ResponseEntity<BookResponseDTO> create(@RequestBody BookRequestDTO request) {
+    public ResponseEntity<BookResponseDTO> create(@Valid @RequestBody BookRequestDTO request) {
         BookResponseDTO created = service.create(request);
         URI location = URI.create("/books/" + created.id());
         return ResponseEntity.created(location).body(created);
@@ -38,7 +39,7 @@ public class BookController {
 
     @PutMapping("/{id}")
     public ResponseEntity<BookResponseDTO> update(@PathVariable("id") Long id,
-                                                  @RequestBody BookRequestDTO request) {
+                                                  @Valid @RequestBody BookRequestDTO request) {
         return ResponseEntity.ok(service.update(id, request));
     }
 
