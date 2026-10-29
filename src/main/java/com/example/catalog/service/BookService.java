@@ -3,9 +3,7 @@ package com.example.catalog.service;
 import com.example.catalog.dto.BookRequestDTO;
 import com.example.catalog.dto.BookResponseDTO;
 import com.example.catalog.model.Book;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Comparator;
 import java.util.List;
@@ -20,6 +18,7 @@ public class BookService {
     private final AtomicLong sequence = new AtomicLong();
 
     public BookResponseDTO create(BookRequestDTO request) {
+        validate(request);
         Book book = new Book(sequence.incrementAndGet(),
                 request.isbn(), request.title(), request.author(), request.year());
         books.put(book.getId(), book);
@@ -39,6 +38,7 @@ public class BookService {
 
     public BookResponseDTO update(Long id, BookRequestDTO request) {
         getOrThrow(id);
+        validate(request);
         Book book = new Book(id, request.isbn(), request.title(),
                 request.author(), request.year());
         books.put(id, book);
@@ -50,13 +50,25 @@ public class BookService {
         books.remove(id);
     }
 
-
     private Book getOrThrow(Long id) {
         Book book = books.get(id);
         if (book == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+            throw new BookNotFoundException("Book not found: " + id);
         }
         return book;
+    }
+
+    private void validate(BookRequestDTO request) {
+        if (isBlank(request.isbn()) || isBlank(request.title()) || isBlank(request.author())) {
+            throw new InvalidBookException("isbn, title y author son obligatorios");
+        }
+        if (request.year() == null || request.year() <= 0) {
+            throw new InvalidBookException("year debe ser un número positivo");
+        }
+    }
+
+    private boolean isBlank(String value) {
+        return value == null || value.isBlank();
     }
 
     private BookResponseDTO toResponse(Book book) {
